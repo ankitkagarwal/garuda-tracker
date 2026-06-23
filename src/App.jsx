@@ -377,36 +377,39 @@ const HistoryScreen = ({ sessions }) => (
 
 // ── Analytics Screen ───────────────────────────────────────────────────────
 const AnalyticsScreen = ({ sessions }) => {
-  const complete = sessions.filter(s => s.range_unplug && s.kms_driven != null);
+  // Sessions with unplug recorded (charge complete) — for cost, range added
+  const unplugged  = sessions.filter(s => s.range_unplug != null);
+  // Sessions with kms_driven filled (next plug-in logged) — for driven/efficiency stats
+  const withDriven = sessions.filter(s => s.range_unplug != null && s.kms_driven != null);
 
   // Totals
-  const totalRangeAdded = complete.reduce((a, s) => a + (toN(s.range_added) || 0), 0);
-  const totalCost       = complete.reduce((a, s) => a + (toN(s.cost_aed)    || 0), 0);
-  const totalKmDriven   = complete.reduce((a, s) => a + (toN(s.kms_driven)  || 0), 0);
-  const totalKwhUsed    = complete.reduce((a, s) => a + (toN(s.kwh_used)    || 0), 0);
-  const totalRangeUsed  = complete.reduce((a, s) => a + (toN(s.range_used)  || 0), 0);
-  const avgEffKwh       = totalKmDriven && totalKwhUsed  ? (totalKmDriven / totalKwhUsed).toFixed(2)  : "—";
+  const totalRangeAdded = unplugged.reduce ((a, s) => a + (toN(s.range_added) || 0), 0);
+  const totalCost       = unplugged.reduce ((a, s) => a + (toN(s.cost_aed)    || 0), 0);
+  const totalKmDriven   = withDriven.reduce((a, s) => a + (toN(s.kms_driven)  || 0), 0);
+  const totalKwhUsed    = withDriven.reduce((a, s) => a + (toN(s.kwh_used)    || 0), 0);
+  const totalRangeUsed  = withDriven.reduce((a, s) => a + (toN(s.range_used)  || 0), 0);
+  const avgEffKwh       = totalKmDriven && totalKwhUsed   ? (totalKmDriven / totalKwhUsed).toFixed(2)   : "—";
   const avgEffRange     = totalKmDriven && totalRangeUsed ? (totalKmDriven / totalRangeUsed).toFixed(2) : "—";
 
-  // Last 5
-  const last5 = complete.slice(-5).map(s => ({
-    name:       s.datetime ? s.datetime.slice(0,6) : "",
+  // Last 5 — only sessions with kms_driven
+  const last5 = withDriven.slice(-5).map(s => ({
+    name:          s.datetime ? s.datetime.slice(0,6) : "",
     "Range Used":  toN(s.range_used)  || 0,
     "km Driven":   toN(s.kms_driven)  || 0,
   }));
 
-  // Monthly cost — aggregate correctly
+  // Monthly cost — use unplugged sessions (cost is known after unplug)
   const costMap = {};
-  complete.forEach(s => {
+  unplugged.forEach(s => {
     const m = monthLabel(s.plugin_ts || s.datetime);
     if (!m) return;
     costMap[m] = (costMap[m] || 0) + (toN(s.cost_aed) || 0);
   });
   const monthlyData = Object.entries(costMap).map(([month, cost]) => ({ month, cost: parseFloat(cost.toFixed(2)) }));
 
-  // Monthly efficiency km/range_used
+  // Monthly efficiency — only sessions with kms_driven and range_used
   const effMap = {}, effCount = {};
-  complete.forEach(s => {
+  withDriven.forEach(s => {
     if (s.kms_driven && s.range_used) {
       const m = monthLabel(s.plugin_ts || s.datetime);
       if (!m) return;
