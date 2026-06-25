@@ -49,8 +49,8 @@ const computeDerived = (session, nextSession) => {
   const range_used = (session.range_unplug != null && nextSession?.range_plugin != null)
     ? session.range_unplug - nextSession.range_plugin
     : null;
-  const kwh_used = (session.kwh_added != null && session.kms_driven != null && session.range_added != null && session.range_added !== 0)
-    ? parseFloat((session.kwh_added * session.kms_driven / session.range_added).toFixed(3))
+  const kwh_used = (session.kwh_added != null && session.range_used != null && session.range_added != null && session.range_added !== 0)
+    ? parseFloat((session.kwh_added * session.range_used / session.range_added).toFixed(3))
     : null;
   return { ...session, range_used, kwh_used };
 };
@@ -222,8 +222,8 @@ const LogScreen = ({ sessions, setSessions, setToast }) => {
             const kms_driven = Number(form.odometer) - Number(last.odometer);
             // range_used: last.range_unplug - new plug-in range
             const range_used = (last.range_unplug != null) ? last.range_unplug - Number(form.range_plugin) : null;
-            const kwh_used   = (last.kwh_added != null && kms_driven != null && last.range_added != null && last.range_added !== 0)
-              ? parseFloat((last.kwh_added * kms_driven / last.range_added).toFixed(3)) : null;
+            const kwh_used   = (last.kwh_added != null && range_used != null && last.range_added != null && last.range_added !== 0)
+              ? parseFloat((last.kwh_added * range_used / last.range_added).toFixed(3)) : null;
             updated[lastIdx] = { ...last, kms_driven, range_used, kwh_used };
             await updateRow(lastIdx, updated[lastIdx]);
           }
