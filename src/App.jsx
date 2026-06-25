@@ -49,8 +49,8 @@ const computeDerived = (session, nextSession) => {
   const range_used = (session.range_unplug != null && nextSession?.range_plugin != null)
     ? session.range_unplug - nextSession.range_plugin
     : null;
-  const kwh_used = (session.kwh_added != null && session.range_used != null && session.range_added != null && session.range_added !== 0)
-    ? parseFloat((session.kwh_added * session.range_used / session.range_added).toFixed(3))
+  const kwh_used = (session.kwh_added != null && range_used != null && session.range_added != null && session.range_added !== 0)
+    ? parseFloat((session.kwh_added * range_used / session.range_added).toFixed(3))
     : null;
   return { ...session, range_used, kwh_used };
 };
