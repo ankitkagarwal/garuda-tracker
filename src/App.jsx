@@ -406,19 +406,6 @@ const AnalyticsScreen = ({ sessions }) => {
     costMap[m] = (costMap[m] || 0) + (toN(s.cost_aed) || 0);
   });
   const monthlyData = Object.entries(costMap).map(([month, cost]) => ({ month, cost: parseFloat(cost.toFixed(2)) }));
-/*
-  // Monthly efficiency — only sessions with kms_driven and range_used
-  const effMap = {}, effCount = {};
-  withDriven.forEach(s => {
-    if (s.kms_driven && s.range_used) {
-      const m = monthLabel(s.plugin_ts || s.datetime);
-      if (!m) return;
-      effMap[m]   = (effMap[m]   || 0) + (toN(s.kms_driven) / toN(s.range_used));
-      effCount[m] = (effCount[m] || 0) + 1;
-    }
-  });
-  const effData = Object.entries(effMap).map(([month, total]) => ({ month, efficiency: parseFloat((total / effCount[month]).toFixed(3)) }));
-*/
 
 // New Monthly efficiency — only sessions with kms_driven and range_used
 const kmMap = {};
