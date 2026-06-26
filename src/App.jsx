@@ -407,29 +407,20 @@ const AnalyticsScreen = ({ sessions }) => {
   });
   const monthlyData = Object.entries(costMap).map(([month, cost]) => ({ month, cost: parseFloat(cost.toFixed(2)) }));
 
-// New Monthly efficiency — only sessions with kms_driven and range_used
-const kmMap = {};
-const rangeMap = {};
-
-withDriven.forEach(s => {
-  if (s.kms_driven && s.range_used) {
-    const m = monthLabel(s.plugin_ts || s.datetime);
-    if (!m) return;
-
-    kmMap[m] = (kmMap[m] || 0) + toN(s.kms_driven);
-    rangeMap[m] = (rangeMap[m] || 0) + toN(s.range_used);
-  }
-});
-
-const effData = Object.keys(kmMap).map(month => ({
-  month,
-  efficiency: parseFloat(
-    (kmMap[month] / rangeMap[month]).toFixed(3)
-  )
-}));
-
-
-
+  // Monthly efficiency — only sessions with kms_driven and range_used
+  const effMap = {}, effRangeMap = {}, effCount = {}; //const effMap = {}, effCount = {};
+  withDriven.forEach(s => {
+    if (s.kms_driven && s.range_used) {
+      const m = monthLabel(s.plugin_ts || s.datetime);
+      if (!m) return;
+      // effMap[m]   = (effMap[m]   || 0) + (toN(s.kms_driven) / toN(s.range_used));
+      effMap[m]      = (effMap[m]      || 0) + toN(s.kms_driven);
+      effRangeMap[m] = (effRangeMap[m] || 0) + toN(s.range_used);
+      // effCount[m] = (effCount[m] || 0) + 1;
+    }
+  });
+  const effData = Object.entries(effMap).map(([month, sumKm]) => ({ month, efficiency: parseFloat((sumKm / effRangeMap[month]).toFixed(3)) })); //const effData = Object.entries(effMap).map(([month, total]) => ({ month, efficiency: parseFloat((total / effCount[month]).toFixed(3)) }));
+  
   const STATS = [
     { label: "Total Range Added", value: fmt(totalRangeAdded, 0), unit: "km",    color: T.coral  },
     { label: "Total Spent",       value: fmt(totalCost, 2),       unit: "AED",   color: T.amber  },
